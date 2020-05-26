@@ -12,18 +12,28 @@ set (CMAKE_CXX_EXTENSIONS           OFF)
 
 
 
+########### Tetris Library ###################
+
+add_library(Tetris 
+    src/Tetris/Tetriminos.cpp
+    src/Tetris/Tetris.cpp)
+add_library(Tetris::Tetris ALIAS Tetris)
+target_include_directories(Tetris PUBLIC src)
+
+
 ########### Tetris Application ###################
 
 add_executable(tetris src/main.cpp)
+target_link_libraries(tetris PUBLIC Tetris::Tetris )
 
 
 ######## test ########
 
 find_package(Catch2 REQUIRED)
 
-add_executable(test_tetris  test/test_game_logic.cpp test/main_catch.cpp)
+add_executable(test_tetris  test/test_game_logic.cpp test/test_tetriminos.cpp test/main_catch.cpp)
 target_compile_definitions(test_tetris PUBLIC UNITEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
-target_link_libraries(test_tetris  Catch2::Catch2 )
+target_link_libraries(test_tetris Tetris::Tetris  Catch2::Catch2 )
 
 
 ######### test coverage with kcov and ctest ######################
