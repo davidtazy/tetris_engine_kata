@@ -44,37 +44,92 @@ struct ITimer {
   TimerListener* listener{};
 };
 
-struct TestableTimer : public ITimer {
-  void Start(const std::chrono::milliseconds& period) { started = true; }
-  void Stop() { started = false; }
-  using ITimer::Step;
+struct Block {
+  Pos pos;
+  Tetriminos::eColor color;
 };
+using Blocks = std::vector<Block>;
+
+enum class eAction {
+  TryLeft,
+  TryRight,
+  TryRotate,
+  TryDown,
+
+  Left,
+  Right,
+  Rotate,
+  Down,
+
+  CollisionWall,
+  CollisionStale,
+  CollisionFloor,
+
+  Land,
+};
+
+using ActionHistory = std::vector<eAction>;
 
 class Tetris : public InputListener, public TimerListener {
   ITimer& timer;
+  TetriminosGenerator generator;
+  Tetriminos current;
+  Tetriminos next;
+  Blocks stale_blocks;
+  ActionHistory actions;
+  int width{10};
+  int height{25};
+  std::vector<Pos> left_wall;
+  std::vector<Pos> right_wall;
+  std::vector<Pos> floor;
 
  public:
-  explicit Tetris(ITimer& timer) : timer(timer) { timer.Register(this); }
+  explicit Tetris(ITimer& timer, int seed = std::random_device{}());
+
+  int Width() const { return width; }
+  int Height() const { return height; }
 
   ///  events
-  void OnLeft() override {}
-  void OnRight() override {}
-  void OnRotate() override {}
+  void OnLeft() override;
+  void OnRight() override;
+  void OnRotate() override;
   void OnFastDown() override {}
   void OnPause() override { timer.Stop(); }
   void OnResume() override {
     if (!timer.IsStarted())
       timer.Start(std::chrono::seconds{1});
   }
-  void OnTimerEvent(const ITimer& timer) override {}
+  void OnTimerEvent(const ITimer& timer) override {
+    // auto c = current;
+    // c.Move();
+
+    // if (CanMove(c)) {
+    //   current = c;
+    // } else {
+    //   LoadNext();
+    // }
+  }
 
   // blocks
 
-  Tetriminos Current() const { return {}; }
-  Tetriminos Next() const { return {}; }
+  Tetriminos Current() const { return current; }
+  Tetriminos Next() const { return next; }
+  const Blocks& StaleBlocks() const { return stale_blocks; }
+  const std::vector<Pos>& LeftWall() const { return left_wall; }
+  const std::vector<Pos>& RightWall() const { return right_wall; }
+  const std::vector<Pos>& Floor() const { return floor; }
+
+  const ActionHistory& History() const { return actions; }
+  eAction LastAction() const { return actions.back(); }
 
  protected:
   void LoadNext();
+  bool CollideWithLeftWall(const Tetriminos& t) const;
+  bool CollideWithRightWall(const Tetriminos& t) const;
+  bool CollideWithStaleBlocks(const Tetriminos& t) const;
+  bool CollideWithFloor(const Tetriminos& t) const;
+
+  void AddStaleBlock(const Block& block) { stale_blocks.push_back(block); }
 };
 
 }  // namespace tetris

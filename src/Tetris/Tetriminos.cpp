@@ -57,6 +57,24 @@ void Tetriminos::Rotate() {
   });
 }
 
+std::vector<Pos> Tetriminos::BlocksAbsolutePosition() const {
+  std::vector<Pos> ret(blocks.size());
+  std::transform(blocks.begin(), blocks.end(), ret.begin(), [this](const Pos& pos) {
+    return Pos{this->position.x + pos.x, this->position.y + pos.y};
+  });
+  return ret;
+}
+
+void Tetriminos::MoveDown() {
+  position.y++;
+}
+void Tetriminos::MoveLeft() {
+  position.x--;
+}
+void Tetriminos::MoveRight() {
+  position.x++;
+}
+
 Tetriminos::eColor Tetriminos::ToColor(eType type_p) {
   static_assert(static_cast<int>(eType::Count) == static_cast<int>(eColor::Count));
   if (type_p >= eType::Count)
@@ -84,7 +102,7 @@ std::ostream& operator<<(std::ostream& out, const Pos& pos) {
 }
 
 ///// Generator
-Tetriminos BlockGenerator::Create() {
+Tetriminos TetriminosGenerator::Create() {
   std::vector<Tetriminos::eType> sample;
 
   auto collection = Tetriminos::TypeCollection();

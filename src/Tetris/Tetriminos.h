@@ -27,6 +27,8 @@ struct Tetriminos {
   explicit Tetriminos(std::string type_p);
   Tetriminos() = default;
 
+  bool IsNull() const { return blocks.empty(); }
+
   eType Type() const { return type; }
   eColor ColorHint() const { return ToColor(type); }
 
@@ -36,9 +38,14 @@ struct Tetriminos {
 
   Pos Position() const { return position; }
 
-  std::vector<Pos> BlocksPosition() { return blocks; }
+  const std::vector<Pos>& BlocksPosition() const { return blocks; }
+  std::vector<Pos> BlocksAbsolutePosition() const;
 
   void Rotate();
+  void MoveDown();
+  void MoveLeft();
+  void MoveRight();
+  void SetX(int x) { position.x = x; }
 
  private:
   eType type;
@@ -48,8 +55,8 @@ struct Tetriminos {
 std::ostream& operator<<(std::ostream& out, const Tetriminos::eType& type);
 std::ostream& operator<<(std::ostream& out, const Tetriminos::eColor& color);
 
-struct BlockGenerator {
-  explicit BlockGenerator(int seed) { gen.seed(seed); };
+struct TetriminosGenerator {
+  explicit TetriminosGenerator(int seed) { gen.seed(seed); };
   Tetriminos Create();
 
  private:

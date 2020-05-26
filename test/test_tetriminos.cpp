@@ -34,7 +34,7 @@ auto generate_tetri_type_sequence(std::vector<std::string> sequence) {
 }
 
 TEST_CASE("block generator generate reproducible random tetriminos") {
-  tetris::BlockGenerator gen(12345);
+  tetris::TetriminosGenerator gen(12345);
 
   auto expected_seq = generate_tetri_type_sequence({
       "S",
@@ -100,6 +100,24 @@ TEST_CASE("tetrimininos blocks can rotate") {
   t.Rotate();
   blocks = t.BlocksPosition();
   REQUIRE(blocks.at(1) == tetris::Pos{1, 0});
+}
+
+TEST_CASE("tetriminos can  move down left and right") {
+  tetris::Tetriminos t{tetris::Tetriminos::eType::I};
+
+  const auto pos = t.Position();
+
+  t.MoveDown();
+  REQUIRE(t.Position().x == pos.x);
+  REQUIRE(t.Position().y == pos.y + 1);
+
+  t.MoveLeft();
+  REQUIRE(t.Position().x == pos.x - 1);
+  REQUIRE(t.Position().y == pos.y + 1);
+
+  t.MoveRight();
+  REQUIRE(t.Position().x == pos.x);
+  REQUIRE(t.Position().y == pos.y + 1);
 }
 
 TEST_CASE("can detect collision between blocks") {
