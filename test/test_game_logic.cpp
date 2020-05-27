@@ -41,7 +41,14 @@ struct TetrisTestable : public Tetris {
     timer_event++;
   }
 
+  void AddStaleBlocks(const std::vector<Pos>& blocks) {
+    for (auto pos : blocks)
+      AddStaleBlock(Block{pos, Tetriminos::eColor::Blue});
+  }
+
   using Tetris::AddStaleBlock;
+  using Tetris::Land;
+  using Tetris::SetCurrent;
 
   int input_event{};
   int timer_event{};
@@ -164,9 +171,11 @@ TEST_CASE("during game, current block can move left until stale blocks  ") {
 
   TetrisTestable game(timer);
 
-  game.AddStaleBlock(Block{Pos{0, 0}, Tetriminos::eColor::Blue});
-  game.AddStaleBlock(Block{Pos{0, 1}, Tetriminos::eColor::Blue});
-  game.AddStaleBlock(Block{Pos{0, 2}, Tetriminos::eColor::Blue});
+  game.AddStaleBlocks({
+      Pos{0, 0},
+      Pos{0, 1},
+      Pos{0, 2},
+  });
 
   game.OnResume();
 
@@ -185,9 +194,11 @@ TEST_CASE("during game, current block can move right until stale blocks  ") {
 
   int w = game.Width();
 
-  game.AddStaleBlock(Block{Pos{w, 0}, Tetriminos::eColor::Blue});
-  game.AddStaleBlock(Block{Pos{w, 1}, Tetriminos::eColor::Blue});
-  game.AddStaleBlock(Block{Pos{w, 2}, Tetriminos::eColor::Blue});
+  game.AddStaleBlocks({
+      Pos{w, 0},
+      Pos{w, 1},
+      Pos{w, 2},
+  });
 
   game.OnResume();
 
@@ -197,4 +208,77 @@ TEST_CASE("during game, current block can move right until stale blocks  ") {
   REQUIRE(game.History().front() == eAction::TryRight);
   REQUIRE(game.History().at(1) == eAction::Right);
   REQUIRE(game.LastAction() == eAction::CollisionStale);
+}
+
+TEST_CASE("during game, current block can not rotate if collide  ") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  auto w = game.Width() / 2;
+
+  game.AddStaleBlocks({
+      Pos{w - 1, 2},
+      Pos{w, 2},
+      Pos{w + 1, 2},
+  });
+
+  game.OnResume();
+
+  game.SetCurrent(Tetriminos{Tetriminos::eType::I});
+
+  game.OnRotate();
+  REQUIRE(game.History() == ActionHistory{eAction::TryRotate, eAction::CollisionStale});
+}
+
+TEST_CASE("On timer event, tetriminos move down ") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  game.SetCurrent(Tetriminos{Tetriminos::eType::I});
+  for (int i = 0; i < game.Height() - 1; i++) {
+    timer.Step();
+    INFO("step " << i << "/" << game.Height() - 2);
+    REQUIRE(game.LastAction() == eAction::Down);
+  }
+
+  SECTION("dont move anymore when touch floor") {
+    timer.Step();
+    REQUIRE(game.LastAction() == eAction::Land);
+  }
+}
+
+TEST_CASE("when landing") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  timer.Step();
+  REQUIRE(game.StaleBlocks().empty());
+
+  game.Land();
+  SECTION("current tetriminos morph in stale blocks ") {
+    REQUIRE(game.StaleBlocks().size() == 4);
+
+    SECTION("next tetriminos become current one at start position") {
+      REQUIRE(game.Current().Position() == Pos{game.Width() / 2, 0});
+    }
+  }
+}
+
+TEST_CASE("game is over") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer, -793007151);  //
+
+  timer.Step();
+  REQUIRE(game.StaleBlocks().empty());
+
+  // force first block to "land" in start position
+  game.Land();
+
+  timer.Step();
+  REQUIRE(game.LastAction() == eAction::GameOver);
+  REQUIRE(game.IsOver());
 }

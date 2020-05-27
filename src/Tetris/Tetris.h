@@ -50,7 +50,10 @@ struct Block {
 };
 using Blocks = std::vector<Block>;
 
+Blocks MorphToBlocks(const Tetriminos& t);
+
 enum class eAction {
+  NoAction,
   TryLeft,
   TryRight,
   TryRotate,
@@ -66,6 +69,7 @@ enum class eAction {
   CollisionFloor,
 
   Land,
+  GameOver,
 };
 
 using ActionHistory = std::vector<eAction>;
@@ -88,6 +92,7 @@ class Tetris : public InputListener, public TimerListener {
 
   int Width() const { return width; }
   int Height() const { return height; }
+  Pos StartPosition() const { return Pos{width / 2, 0}; }
 
   ///  events
   void OnLeft() override;
@@ -99,16 +104,7 @@ class Tetris : public InputListener, public TimerListener {
     if (!timer.IsStarted())
       timer.Start(std::chrono::seconds{1});
   }
-  void OnTimerEvent(const ITimer& timer) override {
-    // auto c = current;
-    // c.Move();
-
-    // if (CanMove(c)) {
-    //   current = c;
-    // } else {
-    //   LoadNext();
-    // }
-  }
+  void OnTimerEvent(const ITimer& timer) override;
 
   // blocks
 
@@ -120,7 +116,13 @@ class Tetris : public InputListener, public TimerListener {
   const std::vector<Pos>& Floor() const { return floor; }
 
   const ActionHistory& History() const { return actions; }
-  eAction LastAction() const { return actions.back(); }
+  eAction LastAction() const {
+    if (actions.empty())
+      return eAction::NoAction;
+    return actions.back();
+  }
+
+  bool IsOver() const;
 
  protected:
   void LoadNext();
@@ -128,8 +130,11 @@ class Tetris : public InputListener, public TimerListener {
   bool CollideWithRightWall(const Tetriminos& t) const;
   bool CollideWithStaleBlocks(const Tetriminos& t) const;
   bool CollideWithFloor(const Tetriminos& t) const;
+  void Land();
 
   void AddStaleBlock(const Block& block) { stale_blocks.push_back(block); }
+
+  void SetCurrent(const Tetriminos& t);
 };
 
 }  // namespace tetris
