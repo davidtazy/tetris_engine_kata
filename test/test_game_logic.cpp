@@ -282,3 +282,20 @@ TEST_CASE("game is over") {
   REQUIRE(game.LastAction() == eAction::GameOver);
   REQUIRE(game.IsOver());
 }
+
+TEST_CASE("end to end game with no user inputs") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  game.OnResume();
+
+  while (!game.IsOver()) {
+    timer.Step();
+  }
+
+  auto h = game.History();
+  REQUIRE(std::count(h.begin(), h.end(), eAction::Land) > 8);
+
+  REQUIRE(game.StaleBlocks().size() > 8 * 4);
+}
