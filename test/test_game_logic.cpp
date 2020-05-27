@@ -299,3 +299,46 @@ TEST_CASE("end to end game with no user inputs") {
 
   REQUIRE(game.StaleBlocks().size() > 8 * 4);
 }
+
+void CreateCompletedLine(TetrisTestable& game, int height) {
+  for (int i = 0; i < game.Width(); i++)
+    game.AddStaleBlocks({Pos{i, height}});
+}
+
+TEST_CASE("can find completed lines") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  SECTION("stale blocks is empty") { REQUIRE(game.FindCompletedLines().empty()); }
+  SECTION("no line completed") {
+    game.AddStaleBlocks({Pos{5, 5}, Pos{6, 6}});
+
+    REQUIRE(game.FindCompletedLines().empty());
+  }
+  SECTION("one line completed") {
+    CreateCompletedLine(game, 10);
+    REQUIRE(game.FindCompletedLines() == std::vector<int>{10});
+  }
+
+  SECTION("2 lines completed") {
+    CreateCompletedLine(game, 10);
+    CreateCompletedLine(game, 12);
+    REQUIRE(game.FindCompletedLines() == std::vector<int>{10, 12});
+  }
+
+  SECTION("3 lines completed") {
+    CreateCompletedLine(game, 10);
+    CreateCompletedLine(game, 12);
+    CreateCompletedLine(game, 13);
+    REQUIRE(game.FindCompletedLines() == std::vector<int>{10, 12, 13});
+  }
+
+  SECTION("4 lines completed") {
+    CreateCompletedLine(game, 10);
+    CreateCompletedLine(game, 11);
+    CreateCompletedLine(game, 12);
+    CreateCompletedLine(game, 13);
+    REQUIRE(game.FindCompletedLines() == std::vector<int>{10, 11, 12, 13});
+  }
+}

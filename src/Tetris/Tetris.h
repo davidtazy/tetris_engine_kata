@@ -124,6 +124,9 @@ class Tetris : public InputListener, public TimerListener {
 
   bool IsOver() const;
 
+  // score related
+  std::vector<int> FindCompletedLines() const;
+
  protected:
   void LoadNext();
   bool CollideWithLeftWall(const Tetriminos& t) const;

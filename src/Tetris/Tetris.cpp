@@ -156,5 +156,23 @@ Blocks MorphToBlocks(const Tetriminos& t) {
 
   return blocks;
 }
+#include <numeric>
+std::vector<int> Tetris::FindCompletedLines() const {
+  std::vector<int> counters =
+      std::accumulate(stale_blocks.begin(), stale_blocks.end(), std::vector<int>(height),
+                      [](std::vector<int> counter, const Block& block) {
+                        counter[block.pos.y]++;
+                        return counter;
+                      });
+
+  std::vector<int> ret;
+  for (int i = 0; i < counters.size(); i++) {
+    if (counters.at(i) == width) {
+      ret.push_back(i);
+    }
+  }
+
+  return ret;
+}
 
 }  // namespace tetris
