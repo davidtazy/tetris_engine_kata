@@ -47,7 +47,9 @@ struct TetrisTestable : public Tetris {
   }
 
   using Tetris::AddStaleBlock;
+  using Tetris::ApplyGravity;
   using Tetris::Land;
+  using Tetris::RemoveAllBlocksInLine;
   using Tetris::SetCurrent;
 
   int input_event{};
@@ -341,4 +343,33 @@ TEST_CASE("can find completed lines") {
     CreateCompletedLine(game, 13);
     REQUIRE(game.FindCompletedLines() == std::vector<int>{10, 11, 12, 13});
   }
+}
+
+TEST_CASE(" can remove all blocks in one line") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  CreateCompletedLine(game, 10);
+
+  int nb_block_to_remove = game.StaleBlocks().size();
+  game.RemoveAllBlocksInLine(9);
+  REQUIRE(game.StaleBlocks().size() == nb_block_to_remove);
+
+  game.RemoveAllBlocksInLine(10);
+  REQUIRE(game.StaleBlocks().empty());
+}
+
+TEST_CASE(" can apply gravity and move down all block above line") {
+  TestableTimer timer;
+
+  TetrisTestable game(timer);
+
+  CreateCompletedLine(game, 7);
+  CreateCompletedLine(game, 8);
+  CreateCompletedLine(game, 10);
+
+  game.ApplyGravity(9);
+
+  REQUIRE(game.FindCompletedLines() == std::vector<int>{8, 9, 10});
 }

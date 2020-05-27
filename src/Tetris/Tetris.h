@@ -135,6 +135,8 @@ class Tetris : public InputListener, public TimerListener {
   bool CollideWithFloor(const Tetriminos& t) const;
   void Land();
 
+  void RemoveAllBlocksInLine(int line){};
+  void ApplyGravity(int line){};
   void AddStaleBlock(const Block& block) { stale_blocks.push_back(block); }
 
   void SetCurrent(const Tetriminos& t);

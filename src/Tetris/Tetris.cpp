@@ -104,6 +104,14 @@ void Tetris::OnTimerEvent(const ITimer& timer) {
 
   if (CollideWithStaleBlocks(next_pos) || CollideWithFloor(next_pos)) {
     Land();
+    auto completed_lines = FindCompletedLines();
+    for (auto line : completed_lines) {
+      RemoveAllBlocksInLine(line);
+    }
+    for (auto line : completed_lines) {
+      ApplyGravity(line);
+    }
+
     return;
   }
 
