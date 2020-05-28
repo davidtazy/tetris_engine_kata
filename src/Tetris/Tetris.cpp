@@ -183,4 +183,18 @@ std::vector<int> Tetris::FindCompletedLines() const {
   return ret;
 }
 
+void Tetris::RemoveAllBlocksInLine(int line) {
+  auto it = std::remove_if(stale_blocks.begin(), stale_blocks.end(),
+                           [line](const Block& block) { return block.pos.y == line; });
+  stale_blocks.erase(it, stale_blocks.end());
+}
+
+void Tetris::ApplyGravity(int line) {
+  for (Block& block : stale_blocks) {
+    auto& y = block.pos.y;
+    if (y < line)
+      y++;
+  }
+}
+
 }  // namespace tetris
