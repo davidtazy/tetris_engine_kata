@@ -3,9 +3,13 @@
 #include <iostream>
 namespace tetris {
 
-Tetris::Tetris(ITimer& timer, int seed)
-    : timer(timer), generator(seed), left_wall(height), right_wall(height), floor(width + 1) {
-  std::cout << "seed is " << seed << std::endl;
+Tetris::Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int buffer_depth)
+    : timer(timer),
+      score(score_p),
+      generator(gen, buffer_depth),
+      left_wall(height),
+      right_wall(height),
+      floor(width + 1) {
   timer.Register(this);
   LoadNext();
 
@@ -23,11 +27,7 @@ Tetris::Tetris(ITimer& timer, int seed)
 }
 
 void Tetris::LoadNext() {
-  if (next.IsNull()) {
-    next = generator.Create();
-  }
-  SetCurrent(next);
-  next = generator.Create();
+  SetCurrent(generator.Take());
 }
 
 void tetris::Tetris::SetCurrent(const Tetriminos& t) {
@@ -104,12 +104,13 @@ void Tetris::OnTimerEvent(const ITimer& timer) {
 
   if (CollideWithStaleBlocks(next_pos) || CollideWithFloor(next_pos)) {
     Land();
-    auto completed_lines = FindCompletedLines();
-    for (auto line : completed_lines) {
-      RemoveAllBlocksInLine(line);
-    }
-    for (auto line : completed_lines) {
-      ApplyGravity(line);
+    if (auto completed_lines = FindCompletedLines(); completed_lines.size()) {
+      for (auto line : completed_lines) {
+        RemoveAllBlocksInLine(line);
+      }
+      for (auto line : completed_lines) {
+        ApplyGravity(line);
+      }
     }
 
     return;
@@ -169,7 +170,8 @@ std::vector<int> Tetris::FindCompletedLines() const {
   std::vector<int> counters =
       std::accumulate(stale_blocks.begin(), stale_blocks.end(), std::vector<int>(height),
                       [](std::vector<int> counter, const Block& block) {
-                        counter[block.pos.y]++;
+                        if (block.pos.y >= 0)
+                          counter[block.pos.y]++;
                         return counter;
                       });
 

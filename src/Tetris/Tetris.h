@@ -1,5 +1,6 @@
 #pragma once
 #include <chrono>
+#include "Tetris/IScore.h"
 #include "Tetris/Tetriminos.h"
 namespace tetris {
 
@@ -76,9 +77,9 @@ using ActionHistory = std::vector<eAction>;
 
 class Tetris : public InputListener, public TimerListener {
   ITimer& timer;
-  TetriminosGenerator generator;
+  IScore& score;
+  TetriminosFactory generator;
   Tetriminos current;
-  Tetriminos next;
   Blocks stale_blocks;
   ActionHistory actions;
   int width{10};
@@ -86,9 +87,11 @@ class Tetris : public InputListener, public TimerListener {
   std::vector<Pos> left_wall;
   std::vector<Pos> right_wall;
   std::vector<Pos> floor;
+  //
 
  public:
-  explicit Tetris(ITimer& timer, int seed = std::random_device{}());
+  // int seed =
+  explicit Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int buffer_depth);
 
   int Width() const { return width; }
   int Height() const { return height; }
@@ -109,7 +112,7 @@ class Tetris : public InputListener, public TimerListener {
   // blocks
 
   Tetriminos Current() const { return current; }
-  Tetriminos Next() const { return next; }
+  Tetriminos Next(int offset = 0) const { return generator.Next(offset); }
   const Blocks& StaleBlocks() const { return stale_blocks; }
   const std::vector<Pos>& LeftWall() const { return left_wall; }
   const std::vector<Pos>& RightWall() const { return right_wall; }
@@ -124,7 +127,6 @@ class Tetris : public InputListener, public TimerListener {
 
   bool IsOver() const;
 
-  // score related
   std::vector<int> FindCompletedLines() const;
 
  protected:

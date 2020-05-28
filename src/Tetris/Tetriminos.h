@@ -1,8 +1,9 @@
 #pragma once
 #include <array>
+#include <functional>
+#include <list>
 #include <ostream>
 #include <random>
-
 namespace tetris {
 
 struct Pos {
@@ -55,9 +56,43 @@ struct Tetriminos {
 std::ostream& operator<<(std::ostream& out, const Tetriminos::eType& type);
 std::ostream& operator<<(std::ostream& out, const Tetriminos::eColor& color);
 
-struct TetriminosGenerator {
+//! some flavour of tetris has strategy to deliver Tetriminos
+struct ITetriminosGenerator {
+  virtual Tetriminos Create() = 0;
+};
+
+class TetriminosFactory {
+  ITetriminosGenerator& generator;
+  std::list<Tetriminos> buffer;
+
+ public:
+  explicit TetriminosFactory(ITetriminosGenerator& generator_p, int buffer_depth)
+      : generator(generator_p), buffer(buffer_depth) {
+    std::generate(buffer.begin(), buffer.end(),
+                  std::bind(&ITetriminosGenerator::Create, std::ref(generator)));
+  }
+
+  Tetriminos Take() {
+    auto t = buffer.front();
+    buffer.pop_front();
+
+    buffer.push_back(generator.Create());
+
+    return t;
+  }
+
+  Tetriminos Next(int offset = 0) const {
+    if (offset < 0 || offset >= buffer.size()) {
+      return Tetriminos{};  // null object  or should it throw exception???
+    }
+
+    return *std::next(buffer.begin(), offset);
+  }
+};
+
+struct TetriminosGenerator : ITetriminosGenerator {
   explicit TetriminosGenerator(int seed) { gen.seed(seed); };
-  Tetriminos Create();
+  Tetriminos Create() override;
 
  private:
   std::mt19937 gen;
