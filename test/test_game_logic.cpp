@@ -2,81 +2,9 @@
 
 #include <Tetris/Tetris.h>
 
+#include "Testables.h"
+
 using namespace tetris;
-
-struct TestableTimer : public ITimer {
-  void Start(const std::chrono::milliseconds& period) { started = true; }
-  void Stop() { started = false; }
-  using ITimer::Step;
-};
-
-struct TetrisTestable : public Tetris {
-  using Tetris::Tetris;
-  void OnLeft() override {
-    Tetris::OnLeft();
-    input_event++;
-  }
-  void OnRight() override {
-    Tetris::OnRight();
-    input_event += 10;
-  }
-  void OnRotate() override {
-    Tetris::OnRotate();
-    input_event += 100;
-  }
-  void OnFastDown() override {
-    Tetris::OnFastDown();
-    input_event += 1000;
-  }
-  void OnPause() override {
-    Tetris::OnPause();
-    input_event += 10000;
-  }
-  void OnResume() override {
-    Tetris::OnResume();
-    input_event += 100000;
-  }
-  void OnTimerEvent(const ITimer& timer) override {
-    Tetris::OnTimerEvent(timer);
-    timer_event++;
-  }
-
-  void AddStaleBlocks(const std::vector<Pos>& blocks) {
-    for (auto pos : blocks)
-      AddStaleBlock(Block{pos, Tetriminos::eColor::Blue});
-  }
-
-  using Tetris::AddStaleBlock;
-  using Tetris::ApplyGravity;
-  using Tetris::Land;
-  using Tetris::RemoveAllBlocksInLine;
-  using Tetris::SetCurrent;
-
-  int input_event{};
-  int timer_event{};
-};
-#include <Tetris/IScore.h>
-struct DummyScore : IScore {
-  int compteted_lines{};
-  void OnNewTetriminos() override{};
-
-  //! return true if level changed
-  bool OnCompletedLine(int nb_line) override {
-    int level = Level();
-    compteted_lines += nb_line;
-    return level != Level();
-  };
-  void OnPerfectClear() override{};
-  void OnSoftDrop() override{};
-
-  int Score() const override { return 0; };
-
-  int Level() const override { return 1 + compteted_lines / 10; };
-
-  int CompletedLines() const override { return compteted_lines; };
-
-  std::chrono::milliseconds DropPeriod() const override { return std::chrono::seconds{1}; };
-};
 
 TEST_CASE("can receive user events from external lib") {
   TestableTimer timer;
@@ -247,6 +175,29 @@ TEST_CASE("during game, current block can move right until stale blocks  ") {
   REQUIRE(game.LastAction() == eAction::CollisionStale);
 }
 
+TEST_CASE("during game, current block can be soft drop  ") {
+  TestableTimer timer;
+  DummyScore score;
+  TestableGenerator gen;
+
+  gen.buf =
+      std::list<Tetriminos>{Tetriminos{Tetriminos::eType::I}, Tetriminos{Tetriminos::eType::I},
+                            Tetriminos{Tetriminos::eType::I}};
+
+  TetrisTestable game(timer, score, gen, 1);
+
+  for (int i = 0; i < game.Height() - 1; i++) {
+    game.OnFastDown();
+    INFO("step " << i << "/" << game.Height() - 2);
+    REQUIRE(game.LastAction() == eAction::Down);
+  }
+
+  SECTION("dont move anymore when touch floor") {
+    game.OnFastDown();
+    REQUIRE(game.LastAction() == eAction::Land);
+  }
+}
+
 TEST_CASE("during game, current block can not rotate if collide  ") {
   TestableTimer timer;
   DummyScore score;
@@ -323,7 +274,7 @@ TEST_CASE("game is over") {
   REQUIRE(game.LastAction() == eAction::GameOver);
   REQUIRE(game.IsOver());
 }
-
+//#include <iostream>
 TEST_CASE("end to end game with no user inputs") {
   TestableTimer timer;
   DummyScore score;
@@ -339,11 +290,8 @@ TEST_CASE("end to end game with no user inputs") {
   REQUIRE(std::count(h.begin(), h.end(), eAction::Land) > 8);
 
   REQUIRE(game.StaleBlocks().size() > 8 * 4);
-}
 
-void CreateCompletedLine(TetrisTestable& game, int height) {
-  for (int i = 0; i < game.Width(); i++)
-    game.AddStaleBlocks({Pos{i, height}});
+  // std::cout << dump(game) << std::endl;
 }
 
 TEST_CASE("can find completed lines") {
@@ -414,4 +362,20 @@ TEST_CASE(" can apply gravity and move down all block above line") {
   game.ApplyGravity(9);
 
   REQUIRE(game.FindCompletedLines() == std::vector<int>{8, 9, 10});
+}
+
+TEST_CASE(" can apply gravity when several line were cleared") {
+  TestableTimer timer;
+  DummyScore score;
+  TetriminosGenerator gen(std::random_device{}());
+  TetrisTestable game(timer, score, gen, 1);
+
+  // game.AddStaleBlocks({{5,5},{7,7},{9,9}})
+  CreateCompletedLine(game, 7);
+  CreateCompletedLine(game, 9);
+  CreateCompletedLine(game, 11);
+
+  game.ApplyGravity(std::vector<int>{10, 8});
+
+  REQUIRE(game.FindCompletedLines() == std::vector<int>{9, 10, 11});
 }

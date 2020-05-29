@@ -16,6 +16,7 @@ Tetris::Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int bu
   // generate walls
   for (int i = 0; i < right_wall.size(); i++) {
     right_wall[i].y = left_wall[i].y = i;
+    left_wall[i].x = -1;
     right_wall[i].x = width;
   }
 
@@ -27,6 +28,7 @@ Tetris::Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int bu
 }
 
 void Tetris::LoadNext() {
+  score.OnNewTetriminos();
   SetCurrent(generator.Take());
 }
 
@@ -93,23 +95,38 @@ void Tetris::OnRight() {
   actions.push_back(eAction::Right);
 }
 
+void Tetris::OnFastDown() {
+  score.OnSoftDrop();
+  actions.push_back(eAction::TryDown);
+  Down();
+}
+
 void Tetris::OnTimerEvent(const ITimer& timer) {
   if (IsOver()) {
     actions.push_back(eAction::GameOver);
     return;
   }
 
+  Down();
+}
+
+void Tetris::Down() {
   auto next_pos = current;
   next_pos.MoveDown();
 
   if (CollideWithStaleBlocks(next_pos) || CollideWithFloor(next_pos)) {
     Land();
     if (auto completed_lines = FindCompletedLines(); completed_lines.size()) {
+      if (score.OnCompletedLine(completed_lines.size())) {
+        timer.Start(score.DropPeriod());  // level changed
+      }
       for (auto line : completed_lines) {
         RemoveAllBlocksInLine(line);
       }
-      for (auto line : completed_lines) {
-        ApplyGravity(line);
+      if (stale_blocks.empty()) {
+        score.OnPerfectClear();  //  wouah
+      } else {
+        ApplyGravity(completed_lines);
       }
     }
 
@@ -149,19 +166,37 @@ bool Tetris::CollideWithStaleBlocks(const Tetriminos& t) const {
   return Collision(blocks_pos, t.BlocksAbsolutePosition());
 }
 
-bool tetris::Tetris::IsOver() const {
+bool Tetris::IsOver() const {
   return current.Position() == StartPosition() && CollideWithStaleBlocks(current);
 }
 
-Blocks MorphToBlocks(const Tetriminos& t) {
+void Tetris::ThrowIfOffGridBlock(const Pos& pos) const {
+  if (pos.x < 0) {
+    throw std::runtime_error(" block over left wall");
+  }
+  if (pos.x >= Width()) {
+    throw std::runtime_error(" block over right wall");
+  }
+
+  if (pos.y >= Height()) {
+    throw std::runtime_error(" block is over floor");
+  }
+
+  // dont check ceil because can overide at start posistion
+}
+
+Blocks Tetris::MorphToBlocks(const Tetriminos& t) const {
   auto abs_pos_t = t.BlocksAbsolutePosition();
 
   Blocks blocks(abs_pos_t.size());
   auto color = t.ColorHint();
 
-  std::transform(abs_pos_t.begin(), abs_pos_t.end(), blocks.begin(), [color](const Pos& abs_pos) {
-    return Block{abs_pos, color};
-  });
+  std::transform(abs_pos_t.begin(), abs_pos_t.end(), blocks.begin(),
+                 [this, color](const Pos& abs_pos) {
+                   ThrowIfOffGridBlock(abs_pos);
+
+                   return Block{abs_pos, color};
+                 });
 
   return blocks;
 }
@@ -189,6 +224,15 @@ void Tetris::RemoveAllBlocksInLine(int line) {
   auto it = std::remove_if(stale_blocks.begin(), stale_blocks.end(),
                            [line](const Block& block) { return block.pos.y == line; });
   stale_blocks.erase(it, stale_blocks.end());
+}
+
+void Tetris::ApplyGravity(std::vector<int> lines) {
+  // require  lines are sorted
+  std::sort(lines.begin(), lines.end(), std::less<int>());
+
+  for (auto line : lines) {
+    ApplyGravity(line);
+  }
 }
 
 void Tetris::ApplyGravity(int line) {

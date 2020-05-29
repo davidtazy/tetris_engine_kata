@@ -51,13 +51,12 @@ struct Block {
 };
 using Blocks = std::vector<Block>;
 
-Blocks MorphToBlocks(const Tetriminos& t);
-
 enum class eAction {
   NoAction,
   TryLeft,
   TryRight,
   TryRotate,
+  FastFastDown,
   TryDown,
 
   Left,
@@ -101,12 +100,13 @@ class Tetris : public InputListener, public TimerListener {
   void OnLeft() override;
   void OnRight() override;
   void OnRotate() override;
-  void OnFastDown() override {}
+  void OnFastDown() override;
   void OnPause() override { timer.Stop(); }
   void OnResume() override {
     if (!timer.IsStarted())
       timer.Start(std::chrono::seconds{1});
   }
+  void Down();
   void OnTimerEvent(const ITimer& timer) override;
 
   // blocks
@@ -128,6 +128,7 @@ class Tetris : public InputListener, public TimerListener {
   bool IsOver() const;
 
   std::vector<int> FindCompletedLines() const;
+  Blocks MorphToBlocks(const Tetriminos& t) const;
 
  protected:
   void LoadNext();
@@ -138,10 +139,13 @@ class Tetris : public InputListener, public TimerListener {
   void Land();
 
   void RemoveAllBlocksInLine(int line);
+  void ApplyGravity(std::vector<int> line);
   void ApplyGravity(int line);
   void AddStaleBlock(const Block& block) { stale_blocks.push_back(block); }
 
   void SetCurrent(const Tetriminos& t);
+
+  void ThrowIfOffGridBlock(const Pos& pos) const;
 };
 
 }  // namespace tetris
