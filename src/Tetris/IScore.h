@@ -21,7 +21,8 @@ struct IScore {
 
   virtual int CompletedLines() const = 0;
 
-  virtual std::chrono::milliseconds DropPeriod() const = 0;
+  //!@param level = 0 mean, with current level
+  virtual std::chrono::milliseconds DropPeriod(int level = 0) const = 0;
 };
 
 };  // namespace tetris

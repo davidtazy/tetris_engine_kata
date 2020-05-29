@@ -16,7 +16,8 @@ set (CMAKE_CXX_EXTENSIONS           OFF)
 
 add_library(Tetris 
     src/Tetris/Tetriminos.cpp
-    src/Tetris/Tetris.cpp)
+    src/Tetris/Tetris.cpp
+    src/Tetris/NintendoClassicScore.cpp)
 add_library(Tetris::Tetris ALIAS Tetris)
 target_include_directories(Tetris PUBLIC src)
 

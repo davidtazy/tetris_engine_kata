@@ -1,3 +1,4 @@
+#pragma once
 #include <Tetris/Tetris.h>
 
 using namespace tetris;
@@ -78,7 +79,9 @@ struct DummyScore : IScore {
 
   int CompletedLines() const override { return compteted_lines; };
 
-  std::chrono::milliseconds DropPeriod() const override { return std::chrono::seconds{1}; };
+  std::chrono::milliseconds DropPeriod(int level) const override {
+    return std::chrono::seconds{1};
+  };
 };
 
 static void CreateCompletedLine(TetrisTestable& game, int height) {

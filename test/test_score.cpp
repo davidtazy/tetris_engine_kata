@@ -1,7 +1,11 @@
-#include <catch2/catch.hpp>
-
 #include <Tetris/IScore.h>
 #include <Tetris/Tetris.h>
+
+std::ostream& operator<<(std::ostream& out, const std::chrono::milliseconds& delay) {
+  return out << delay.count() << "ms";
+}
+
+#include <catch2/catch.hpp>
 
 #include "Testables.h"
 
@@ -23,7 +27,9 @@ struct MockScore : tetris::IScore {
   int Score() const override { return 0; };
   int Level() const override { return 1; };
   int CompletedLines() const override { return 2; };
-  std::chrono::milliseconds DropPeriod() const override { return std::chrono::seconds{1}; };
+  std::chrono::milliseconds DropPeriod(int level) const override {
+    return std::chrono::seconds{1};
+  };
 };
 
 using namespace tetris;
@@ -117,4 +123,46 @@ TEST_CASE("restart timer on level change") {
   timer.Step();
 
   REQUIRE(timer.start_call == 2);
+}
+
+/////////////////////////////////////////////////
+///   Nintendo Gaming Scoring ///////////////////
+#include <Tetris/NintendoClassicScore.h>
+TEST_CASE(" Nintendo gaming scoring") {
+  NintendoClassicScore score;
+  REQUIRE(score.Score() == 0);
+  REQUIRE(score.CompletedLines() == 0);
+
+  SECTION(" default level is 1") { REQUIRE(score.Level() == 1); }
+
+  SECTION(" score increment 1 on soft drop") {
+    score.OnSoftDrop();
+    REQUIRE(score.Score() == 1);
+  }
+  SECTION(" score increment 1 on new tetriminos") {
+    score.OnNewTetriminos();
+    REQUIRE(score.Score() == 1);
+  }
+
+  SECTION(" score on completed line") {
+    auto [nb_line, expected_score] =
+        GENERATE(table<int, int>({{1, 40}, {2, 100}, {3, 300}, {4, 1200}}));
+
+    score.OnCompletedLine(nb_line);
+    INFO("nb_line: " << nb_line << " expected score: " << expected_score);
+    REQUIRE(score.Score() == expected_score);
+  }
+
+  SECTION(" drop period calculation") {
+    using namespace std::literals::chrono_literals;
+    auto [level, expected_delay] =
+        GENERATE(table<int, std::chrono::milliseconds>({{1, 999ms}, {2, 793ms}, {3, 617ms}}));
+    INFO("level: " << level);
+    REQUIRE(score.DropPeriod(level) == expected_delay);
+  }
+
+  SECTION("no gain on perfect clear") {
+    score.OnPerfectClear();
+    REQUIRE(score.Score() == 0);
+  }
 }
