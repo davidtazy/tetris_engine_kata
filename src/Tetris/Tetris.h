@@ -2,26 +2,9 @@
 #include <chrono>
 #include "Tetris/IScore.h"
 #include "Tetris/ITimer.h"
+#include "Tetris/IUserInput.h"
 #include "Tetris/Tetriminos.h"
 namespace tetris {
-
-enum class UserEvent {
-  Left,
-  Right,
-  Rotate,
-  FastDown,
-  Pause,
-  Resume,
-};
-
-struct InputListener {
-  virtual void OnLeft() = 0;
-  virtual void OnRight() = 0;
-  virtual void OnRotate() = 0;
-  virtual void OnFastDown() = 0;
-  virtual void OnPause() = 0;
-  virtual void OnResume() = 0;
-};
 
 struct Block {
   Pos pos;
@@ -68,22 +51,16 @@ class Tetris : public InputListener, public TimerListener {
 
  public:
   // int seed =
-  explicit Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int buffer_depth);
+  explicit Tetris(UserInput& user_input,
+                  ITimer& timer,
+                  IScore& score_p,
+                  ITetriminosGenerator& gen,
+                  int buffer_depth);
 
   int Width() const { return width; }
   int Height() const { return height; }
   Pos StartPosition() const { return Pos{width / 2, 0}; }
 
-  ///  events
-  void OnLeft() override;
-  void OnRight() override;
-  void OnRotate() override;
-  void OnFastDown() override;
-  void OnPause() override { timer.Stop(); }
-  void OnResume() override {
-    if (!timer.IsStarted())
-      timer.Start(std::chrono::seconds{1});
-  }
   void Down();
   void OnTimerEvent(const ITimer& timer) override;
 
@@ -107,6 +84,18 @@ class Tetris : public InputListener, public TimerListener {
 
   std::vector<int> FindCompletedLines() const;
   Blocks MorphToBlocks(const Tetriminos& t) const;
+
+ protected:
+  ///  events
+  void OnLeft() override;
+  void OnRight() override;
+  void OnRotate() override;
+  void OnFastDown() override;
+  void OnPause() override { timer.Stop(); }
+  void OnResume() override {
+    if (!timer.IsStarted())
+      timer.Start(std::chrono::seconds{1});
+  }
 
  protected:
   void LoadNext();

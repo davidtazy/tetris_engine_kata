@@ -36,11 +36,12 @@ using namespace tetris;
 
 TEST_CASE("new tetrimino call on each new tetrimino") {
   TestableTimer timer;
+  UserInput user_input;
   MockScore score;
   TetriminosGenerator gen(std::random_device{}());
 
   // on instanciation
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
   REQUIRE(score.new_tetri == 1);
 
   game.Land();
@@ -49,11 +50,12 @@ TEST_CASE("new tetrimino call on each new tetrimino") {
 
 TEST_CASE("completed line call ") {
   TestableTimer timer;
+  UserInput user_input;
   MockScore score;
   TestableGenerator gen;
   gen.buf = std::list<Tetriminos>{Tetriminos{"I"}, Tetriminos{"I"}, Tetriminos{"I"}};
 
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
   game.OnResume();
 
   timer.Step();
@@ -70,11 +72,12 @@ TEST_CASE("completed line call ") {
 
 TEST_CASE("perfect clear call ") {
   TestableTimer timer;
+  UserInput user_input;
   MockScore score;
   TestableGenerator gen;
   gen.buf = std::list<Tetriminos>{Tetriminos{"I"}, Tetriminos{"I"}, Tetriminos{"I"}};
 
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
   game.OnResume();
 
   timer.Step();
@@ -92,11 +95,12 @@ TEST_CASE("perfect clear call ") {
 
 TEST_CASE("soft drop call") {
   TestableTimer timer;
+  UserInput user_input;
   MockScore score;
   TetriminosGenerator gen(std::random_device{}());
 
   // on instanciation
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   game.OnFastDown();
 
@@ -105,11 +109,12 @@ TEST_CASE("soft drop call") {
 
 TEST_CASE("restart timer on level change") {
   TestableTimer timer;
+  UserInput user_input;
   MockScore score;
   TestableGenerator gen;
   gen.buf = std::list<Tetriminos>{Tetriminos{"I"}, Tetriminos{"I"}, Tetriminos{"I"}};
 
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
   game.OnResume();
   REQUIRE(timer.start_call == 1);
 

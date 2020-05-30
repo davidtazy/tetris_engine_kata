@@ -1,5 +1,7 @@
 #include <catch2/catch.hpp>
 
+#include <Tetris/KeyboardInput.h>
+#include <Tetris/NintendoClassicScore.h>
 #include <Tetris/Tetris.h>
 
 #include "Testables.h"
@@ -8,9 +10,10 @@ using namespace tetris;
 
 TEST_CASE("can receive user events from external") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   REQUIRE(game.input_event == 0);
   auto external_lib_inputs = [](InputListener& listener) {
@@ -29,9 +32,10 @@ TEST_CASE("can receive user events from external") {
 
 TEST_CASE("can receive timer events from external ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   REQUIRE(game.timer_event == 0);
   timer.Step();
@@ -41,9 +45,10 @@ TEST_CASE("can receive timer events from external ") {
 TEST_CASE("timing requirements") {
   SECTION("tetris is suspended on Tetris instanciation") {
     TestableTimer timer;
+    UserInput user_input;
     DummyScore score;
     TetriminosGenerator gen(std::random_device{}());
-    TetrisTestable game(timer, score, gen, 1);
+    TetrisTestable game(user_input, timer, score, gen, 1);
 
     REQUIRE(timer.IsStarted() == false);
 
@@ -61,12 +66,13 @@ TEST_CASE("timing requirements") {
 
 TEST_CASE("when game begin, current and next block are available  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TestableGenerator gen;
   using t = Tetriminos::eType;
   gen.buf = std::list<Tetriminos>{Tetriminos{t::I}, Tetriminos{t::O}};
 
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   REQUIRE(game.Current().Type() == t::I);
   REQUIRE(game.Next().Type() == t::O);
@@ -80,9 +86,10 @@ TEST_CASE("when game begin, current and next block are available  ") {
 
 TEST_CASE("when game begin, walls and floor are available  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   REQUIRE(game.RightWall().size() == game.Height());
   REQUIRE(game.LeftWall().size() == game.Height());
@@ -91,6 +98,7 @@ TEST_CASE("when game begin, walls and floor are available  ") {
 
 TEST_CASE("can access N next tetriminos during game") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TestableGenerator gen;
   using t = Tetriminos::eType;
@@ -102,7 +110,7 @@ TEST_CASE("can access N next tetriminos during game") {
   };
 
   int nb_next_tetri = 3;
-  TetrisTestable game(timer, score, gen, nb_next_tetri);
+  TetrisTestable game(user_input, timer, score, gen, nb_next_tetri);
 
   REQUIRE(game.Next().Type() == t::J);
   REQUIRE(game.Next(1).Type() == t::L);
@@ -113,9 +121,10 @@ TEST_CASE("can access N next tetriminos during game") {
 
 TEST_CASE("whan game start, current block can rotate freely  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   for (int i = 0; i < 4; i++) {
     game.OnRotate();
@@ -127,9 +136,10 @@ TEST_CASE("whan game start, current block can rotate freely  ") {
 
 TEST_CASE("when game start, current block can move left until left wall  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
   game.OnResume();
 
   for (int i = 0; i < game.Width(); i++) {
@@ -142,9 +152,10 @@ TEST_CASE("when game start, current block can move left until left wall  ") {
 
 TEST_CASE("when game start, current block can move right until right wall  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
   game.OnResume();
 
   for (int i = 0; i < game.Width(); i++) {
@@ -157,9 +168,10 @@ TEST_CASE("when game start, current block can move right until right wall  ") {
 
 TEST_CASE("during game, current block can move left until stale blocks  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   game.AddStaleBlocks({
       Pos{0, 0},
@@ -179,9 +191,10 @@ TEST_CASE("during game, current block can move left until stale blocks  ") {
 
 TEST_CASE("during game, current block can move right until stale blocks  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   int w = game.Width();
 
@@ -203,6 +216,7 @@ TEST_CASE("during game, current block can move right until stale blocks  ") {
 
 TEST_CASE("during game, current block can be soft drop  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TestableGenerator gen;
 
@@ -210,7 +224,7 @@ TEST_CASE("during game, current block can be soft drop  ") {
       std::list<Tetriminos>{Tetriminos{Tetriminos::eType::I}, Tetriminos{Tetriminos::eType::I},
                             Tetriminos{Tetriminos::eType::I}};
 
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   for (int i = 0; i < game.Height() - 1; i++) {
     game.OnFastDown();
@@ -226,9 +240,10 @@ TEST_CASE("during game, current block can be soft drop  ") {
 
 TEST_CASE("during game, current block can not rotate if collide  ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   auto w = game.Width() / 2;
 
@@ -248,9 +263,10 @@ TEST_CASE("during game, current block can not rotate if collide  ") {
 
 TEST_CASE("On timer event, tetriminos move down ") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   game.SetCurrent(Tetriminos{Tetriminos::eType::I});
   for (int i = 0; i < game.Height() - 1; i++) {
@@ -267,9 +283,10 @@ TEST_CASE("On timer event, tetriminos move down ") {
 
 TEST_CASE("when landing") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   timer.Step();
   REQUIRE(game.StaleBlocks().empty());
@@ -286,9 +303,10 @@ TEST_CASE("when landing") {
 
 TEST_CASE("game is over") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(-793007151);
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   timer.Step();
   REQUIRE(game.StaleBlocks().empty());
@@ -301,30 +319,12 @@ TEST_CASE("game is over") {
   REQUIRE(game.IsOver());
 }
 //#include <iostream>
-TEST_CASE("end to end game with no user inputs") {
-  TestableTimer timer;
-  DummyScore score;
-  TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
-  game.OnResume();
-
-  while (!game.IsOver()) {
-    timer.Step();
-  }
-
-  auto h = game.History();
-  REQUIRE(std::count(h.begin(), h.end(), eAction::Land) > 8);
-
-  REQUIRE(game.StaleBlocks().size() > 8 * 4);
-
-  // std::cout << dump(game) << std::endl;
-}
-
 TEST_CASE("can find completed lines") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   SECTION("stale blocks is empty") { REQUIRE(game.FindCompletedLines().empty()); }
   SECTION("no line completed") {
@@ -361,9 +361,10 @@ TEST_CASE("can find completed lines") {
 
 TEST_CASE(" can remove all blocks in one line") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   CreateCompletedLine(game, 10);
 
@@ -377,9 +378,10 @@ TEST_CASE(" can remove all blocks in one line") {
 
 TEST_CASE(" can apply gravity and move down all block above line") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   CreateCompletedLine(game, 7);
   CreateCompletedLine(game, 8);
@@ -392,9 +394,10 @@ TEST_CASE(" can apply gravity and move down all block above line") {
 
 TEST_CASE(" can apply gravity when several line were cleared") {
   TestableTimer timer;
+  UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
-  TetrisTestable game(timer, score, gen, 1);
+  TetrisTestable game(user_input, timer, score, gen, 1);
 
   // game.AddStaleBlocks({{5,5},{7,7},{9,9}})
   CreateCompletedLine(game, 7);
@@ -404,4 +407,43 @@ TEST_CASE(" can apply gravity when several line were cleared") {
   game.ApplyGravity(std::vector<int>{10, 8});
 
   REQUIRE(game.FindCompletedLines() == std::vector<int>{9, 10, 11});
+}
+
+TEST_CASE("minimal end to end game ") {
+  TestableTimer timer;
+
+  using namespace std::literals::string_literals;
+
+  auto user_input = KeyBoardInputsBuilder{}
+                        .AssignLeft("left"s)
+                        .AssignRight("right"s)
+                        .AssignRotate("rotate"s)
+                        .AssignMoveDown("down"s)
+                        .AssignPause("pause"s)
+                        .AssignResume("resume"s)
+                        .Build();
+
+  NintendoClassicScore score;
+  TetriminosGenerator gen(std::random_device{}());
+  Tetris game(user_input, timer, score, gen, 1);
+  user_input.OnKeyPressed("resume"s);
+
+  int pingpong{};
+  while (!game.IsOver()) {
+    if (pingpong % 2 == 0)
+      user_input.OnKeyPressed("left"s);
+    else
+      user_input.OnKeyPressed("right"s);
+    timer.Step();
+    pingpong++;
+  }
+
+  auto h = game.History();
+  REQUIRE(std::count(h.begin(), h.end(), eAction::Land) > 8);
+
+  REQUIRE(game.StaleBlocks().size() > 8 * 4);
+
+  REQUIRE(score.Score() > 8);
+
+  // std::cout << dump(game) << std::endl;
 }

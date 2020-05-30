@@ -37,6 +37,7 @@ add_executable(test_tetris
                 test/test_tetriminos.cpp 
                 test/test_score.cpp
                 test/main_catch.cpp
+                test/test_user_input.cpp
                 test/Testables.h)
 target_compile_definitions(test_tetris PUBLIC UNITEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
 target_link_libraries(test_tetris Tetris::Tetris  Catch2::Catch2 )

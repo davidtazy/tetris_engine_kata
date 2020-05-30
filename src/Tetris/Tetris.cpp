@@ -3,13 +3,18 @@
 #include <iostream>
 namespace tetris {
 
-Tetris::Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int buffer_depth)
+Tetris::Tetris(UserInput& user_input,
+               ITimer& timer,
+               IScore& score_p,
+               ITetriminosGenerator& gen,
+               int buffer_depth)
     : timer(timer),
       score(score_p),
       generator(gen, buffer_depth),
       left_wall(height),
       right_wall(height),
       floor(width + 2) {
+  user_input.SetListener(*this);
   timer.Register(this);
   LoadNext();
 
