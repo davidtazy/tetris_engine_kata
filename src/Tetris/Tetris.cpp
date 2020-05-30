@@ -9,7 +9,7 @@ Tetris::Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int bu
       generator(gen, buffer_depth),
       left_wall(height),
       right_wall(height),
-      floor(width + 1) {
+      floor(width + 2) {
   timer.Register(this);
   LoadNext();
 
@@ -23,7 +23,7 @@ Tetris::Tetris(ITimer& timer, IScore& score_p, ITetriminosGenerator& gen, int bu
   // generate floor
   for (int i = 0; i < floor.size(); i++) {
     floor[i].y = height;
-    floor[i].x = i;
+    floor[i].x = i - 1;
   }
 }
 

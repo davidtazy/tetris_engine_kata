@@ -28,8 +28,6 @@ struct Tetriminos {
   explicit Tetriminos(std::string type_p);
   Tetriminos() = default;
 
-  bool IsNull() const { return blocks.empty(); }
-
   eType Type() const { return type; }
   eColor ColorHint() const { return ToColor(type); }
 
@@ -83,7 +81,7 @@ class TetriminosFactory {
 
   Tetriminos Next(int offset = 0) const {
     if (offset < 0 || offset >= buffer.size()) {
-      return Tetriminos{};  // null object  or should it throw exception???
+      throw std::runtime_error("try to access not allowed tetriminos");
     }
 
     return *std::next(buffer.begin(), offset);

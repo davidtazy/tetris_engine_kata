@@ -6,7 +6,7 @@
 
 using namespace tetris;
 
-TEST_CASE("can receive user events from external lib") {
+TEST_CASE("can receive user events from external") {
   TestableTimer timer;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
@@ -27,7 +27,7 @@ TEST_CASE("can receive user events from external lib") {
   REQUIRE(game.input_event == 111111);
 }
 
-TEST_CASE("can receive timer events from external lib") {
+TEST_CASE("can receive timer events from external ") {
   TestableTimer timer;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
@@ -62,13 +62,17 @@ TEST_CASE("timing requirements") {
 TEST_CASE("when game begin, current and next block are available  ") {
   TestableTimer timer;
   DummyScore score;
-  TetriminosGenerator gen(std::random_device{}());
+  TestableGenerator gen;
+  using t = Tetriminos::eType;
+  gen.buf = std::list<Tetriminos>{Tetriminos{t::I}, Tetriminos{t::O}};
+
   TetrisTestable game(timer, score, gen, 1);
 
-  REQUIRE_FALSE(game.Current().IsNull());
-  REQUIRE_FALSE(game.Next().IsNull());
+  REQUIRE(game.Current().Type() == t::I);
+  REQUIRE(game.Next().Type() == t::O);
 
   SECTION("and current block is at the top /center of the game") {
+    REQUIRE(game.Current().Position() == game.StartPosition());
     REQUIRE(game.Current().Position().y == 0);
     REQUIRE(game.Current().Position().x == game.Width() / 2);
   }
@@ -82,7 +86,29 @@ TEST_CASE("when game begin, walls and floor are available  ") {
 
   REQUIRE(game.RightWall().size() == game.Height());
   REQUIRE(game.LeftWall().size() == game.Height());
-  REQUIRE(game.Floor().size() == game.Width() + 1);
+  REQUIRE(game.Floor().size() == game.Width() + 2);
+}
+
+TEST_CASE("can access N next tetriminos during game") {
+  TestableTimer timer;
+  DummyScore score;
+  TestableGenerator gen;
+  using t = Tetriminos::eType;
+  gen.buf = std::list<Tetriminos>{
+      Tetriminos(t::I),
+      Tetriminos(t::J),
+      Tetriminos(t::L),
+      Tetriminos(t::O),
+  };
+
+  int nb_next_tetri = 3;
+  TetrisTestable game(timer, score, gen, nb_next_tetri);
+
+  REQUIRE(game.Next().Type() == t::J);
+  REQUIRE(game.Next(1).Type() == t::L);
+  REQUIRE(game.Next(2).Type() == t::O);
+
+  REQUIRE_THROWS_AS(game.Next(3), std::runtime_error);
 }
 
 TEST_CASE("whan game start, current block can rotate freely  ") {
