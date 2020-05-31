@@ -37,12 +37,19 @@ void Tetris::LoadNext() {
   SetCurrent(generator.Take());
 }
 
-void tetris::Tetris::SetCurrent(const Tetriminos& t) {
+void Tetris::SetCurrent(const Tetriminos& t) {
   current = t;
   current.SetX(width / 2);  // initial position
 }
 
+void Tetris::OnResume() {
+  if (!timer.IsStarted())
+    timer.Start(score.DropPeriod());
+}
+
 void Tetris::OnRotate() {
+  if (IsPause())
+    return;
   auto c = current;
   actions.push_back(eAction::TryRotate);
   c.Rotate();
@@ -66,6 +73,8 @@ void Tetris::OnRotate() {
 }
 
 void Tetris::OnLeft() {
+  if (IsPause())
+    return;
   auto c = current;
   actions.push_back(eAction::TryLeft);
   c.MoveLeft();
@@ -83,6 +92,8 @@ void Tetris::OnLeft() {
   actions.push_back(eAction::Left);
 }
 void Tetris::OnRight() {
+  if (IsPause())
+    return;
   auto c = current;
   actions.push_back(eAction::TryRight);
   c.MoveRight();
@@ -101,6 +112,8 @@ void Tetris::OnRight() {
 }
 
 void Tetris::OnFastDown() {
+  if (IsPause())
+    return;
   score.OnSoftDrop();
   actions.push_back(eAction::TryDown);
   Down();

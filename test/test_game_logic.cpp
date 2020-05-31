@@ -241,6 +241,7 @@ TEST_CASE("during game, current block can be soft drop  ") {
                             Tetriminos{Tetriminos::eType::I}};
 
   TetrisTestable game(user_input, timer, score, gen, 1);
+  game.OnResume();
 
   for (int i = 0; i < game.Height() - 1; i++) {
     game.OnFastDown();

@@ -102,9 +102,18 @@ TEST_CASE("soft drop call") {
   // on instanciation
   TetrisTestable game(user_input, timer, score, gen, 1);
 
-  game.OnFastDown();
+  SECTION("dont move on pause") {
+    game.OnFastDown();
 
-  REQUIRE(score.soft_drop == 1);
+    REQUIRE(score.soft_drop == 0);
+  }
+
+  SECTION(" move one step down") {
+    game.OnResume();
+    game.OnFastDown();
+
+    REQUIRE(score.soft_drop == 1);
+  }
 }
 
 TEST_CASE("restart timer on level change") {

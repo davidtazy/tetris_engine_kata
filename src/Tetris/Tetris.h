@@ -95,10 +95,7 @@ class Tetris : public InputListener, public TimerListener {
   void OnRotate() override;
   void OnFastDown() override;
   void OnPause() override { timer.Stop(); }
-  void OnResume() override {
-    if (!timer.IsStarted())
-      timer.Start(std::chrono::seconds{1});
-  }
+  void OnResume() override;
 
  protected:
   void LoadNext();
