@@ -7,31 +7,31 @@ cmake 3.7
 
 h1. console ui to demonstrate functionnality
 
-#          #
-#          #
-#          #
-#          #
-#          #
-#          #  next:    @
-#    @@    #           @
-#    @@    #          @@
-#          #
-#          #
-#          #
-#          #  score: 88
-#          #  lines: 0
-#          #  level: 1
-#          #
-#          #
-#          #
-#          #  press <Enter> to start
-#       xx #
-#      xxx #
-#      xxx #
-#      xxx #
-#      xxx #
-#   xxxxxx #
-############
+\#          \#
+\#          \#
+\#          \#
+\#          \#
+\#          \#
+\#          \#  next:    @
+\#    @@    \#           @
+\#    @@    \#          @@
+\#          \#
+\#          \#
+\#          \#
+\#          \#  score: 88
+\#          \#  lines: 0
+\#          \#  level: 1
+\#          \#
+\#          \#
+\#          \#
+\#          \#  press <Enter> to start
+\#       xx \#
+\#      xxx \#
+\#      xxx \#
+\#      xxx \#
+\#      xxx \#
+\#   xxxxxx \#
+\#\#\#\#\#\#\#\#\#\#\#\#
 
 
 
