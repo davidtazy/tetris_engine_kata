@@ -1,5 +1,5 @@
 # This workflow will install Python and conan
-name: Python application
+name: Github Action Build
 
 on:
   push:

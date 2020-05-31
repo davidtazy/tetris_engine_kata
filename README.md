@@ -1,4 +1,5 @@
-![Python application](https://github.com/davidtazy/tetris_engine_kata/workflows/Python%20application/badge.svg?branch=master)
+![github action build](https://github.com/davidtazy/tetris_engine_kata/workflows/Python%20application/badge.svg?branch=master) 
+[![codecov](https://codecov.io/gh/davidtazy/tetris_engine_kata/branch/master/graph/badge.svg)](https://codecov.io/gh/davidtazy/tetris_engine_kata)
 
 <h1>functionnalities</h1>
 
