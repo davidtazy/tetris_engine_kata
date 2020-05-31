@@ -119,19 +119,27 @@ TEST_CASE("can access N next tetriminos during game") {
   REQUIRE_THROWS_AS(game.Next(3), std::runtime_error);
 }
 
-TEST_CASE("whan game start, current block can rotate freely  ") {
+TEST_CASE("when game start, current block can rotate freely  ") {
   TestableTimer timer;
   UserInput user_input;
   DummyScore score;
   TetriminosGenerator gen(std::random_device{}());
   TetrisTestable game(user_input, timer, score, gen, 1);
 
-  for (int i = 0; i < 4; i++) {
+  SECTION("on pause cannot rotate") {
     game.OnRotate();
+    REQUIRE(game.History().empty());
   }
-  REQUIRE(game.History().at(0) == eAction::TryRotate);
-  REQUIRE(game.History().at(1) == eAction::Rotate);
-  REQUIRE(game.History().back() == eAction::Rotate);
+
+  SECTION(" rotate if not obstacle") {
+    game.OnResume();
+    for (int i = 0; i < 4; i++) {
+      game.OnRotate();
+    }
+    REQUIRE(game.History().at(0) == eAction::TryRotate);
+    REQUIRE(game.History().at(1) == eAction::Rotate);
+    REQUIRE(game.History().back() == eAction::Rotate);
+  }
 }
 
 TEST_CASE("when game start, current block can move left until left wall  ") {
