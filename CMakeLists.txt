@@ -1,9 +1,12 @@
 cmake_minimum_required(VERSION 3.7.0)
 project(tetris)
 
+option(TETRIS_WITH_DEVELOPMENT_DEPENDANCIES " need conan package manager" ON)
 
 ########### dependencies from cmake #########
-include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+if(TETRIS_WITH_DEVELOPMENT_DEPENDANCIES)
+    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+endif()
 
 ########### modern C++ flags######################
 set (CMAKE_CXX_STANDARD             17)
@@ -30,34 +33,34 @@ target_include_directories(tetris PUBLIC rlutil)
 
 
 ######## test ########
+if(TETRIS_WITH_DEVELOPMENT_DEPENDANCIES)
+    find_package(Catch2 REQUIRED)
 
-find_package(Catch2 REQUIRED)
-
-add_executable(test_tetris  
-                test/test_game_logic.cpp 
-                test/test_tetriminos.cpp 
-                test/test_score.cpp
-                test/main_catch.cpp
-                test/test_user_input.cpp
-                test/test_timer.cpp
-                test/Testables.h)
-target_compile_definitions(test_tetris PUBLIC UNITEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
-target_link_libraries(test_tetris Tetris::Tetris  Catch2::Catch2 )
+    add_executable(test_tetris  
+                    test/test_game_logic.cpp 
+                    test/test_tetriminos.cpp 
+                    test/test_score.cpp
+                    test/main_catch.cpp
+                    test/test_user_input.cpp
+                    test/test_timer.cpp
+                    test/Testables.h)
+    target_compile_definitions(test_tetris PUBLIC UNITEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
+    target_link_libraries(test_tetris Tetris::Tetris  Catch2::Catch2 )
 
 
-######### test coverage with kcov and ctest ######################
+    ######### test coverage with kcov and ctest ######################
 
-find_program(KCOV kcov)
-message("kcov: ${KCOV}")
-if( KCOV )
-    enable_testing()
+    find_program(KCOV kcov)
+    message("kcov: ${KCOV}")
+    if( KCOV )
+        enable_testing()
 
-    add_test(
-        NAME tetris_coverage 
-        COMMAND ${KCOV} --exclude-pattern=/usr/ --include-path=${CMAKE_CURRENT_LIST_DIR}/src  cov $<TARGET_FILE:test_tetris>  
-        )
+        add_test(
+            NAME tetris_coverage 
+            COMMAND ${KCOV} --exclude-pattern=/usr/ --include-path=${CMAKE_CURRENT_LIST_DIR}/src  cov $<TARGET_FILE:test_tetris>  
+            )
+    endif()
 endif()
-
 ###################################################################
 ##################### rlutil   ####################################
 add_executable(test_rlutil rlutil/test_rlutil.cpp)
