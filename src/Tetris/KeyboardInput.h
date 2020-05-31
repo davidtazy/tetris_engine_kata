@@ -3,6 +3,8 @@
 #include <Tetris/IUserInput.h>
 #include <any>
 #include <chrono>
+#include <stdexcept>
+#include <vector>
 
 namespace tetris {
 
@@ -50,6 +52,16 @@ class KeyBoardInputs : public UserInput {
 
   template <typename T>
   void OnKeyReleased(T key) {}
+
+  template <typename T>
+  bool IsAssignedKey(T user_key) const {
+    for (int i = 0; i < static_cast<int>(eInputKey::Count); i++) {
+      if (Is(user_key, keys.at(i))) {
+        return true;
+      }
+    }
+    return false;
+  }
 };
 
 struct KeyBoardInputsBuilder {
