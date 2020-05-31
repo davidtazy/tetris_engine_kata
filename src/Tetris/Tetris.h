@@ -85,6 +85,9 @@ class Tetris : public InputListener, public TimerListener {
   std::vector<int> FindCompletedLines() const;
   Blocks MorphToBlocks(const Tetriminos& t) const;
 
+  const IScore& Scoring() const { return score; }
+  bool IsPause() const { return !timer.IsStarted(); }
+
  protected:
   ///  events
   void OnLeft() override;
