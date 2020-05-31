@@ -46,8 +46,6 @@ jobs:
         cd ..
         
     - name: build
-      env: 
-        COVERALLS_ID: "todo" #${{ secrets.COVERALLS_ID }}
       run: |
         cd build
         cmake ..
@@ -55,7 +53,11 @@ jobs:
         cd ..
         
     - name: test
+      env: 
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
         cd build
-        ./test_tetris
+        ctest
+        cd cov
+        bash <(curl -s https://codecov.io/bash)
         
