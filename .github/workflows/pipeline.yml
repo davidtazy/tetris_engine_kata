@@ -36,6 +36,7 @@ jobs:
         bash workflow.sh
         cd ..
         
+        
 
     - name: install dependencies 
       run: |
@@ -56,8 +57,9 @@ jobs:
       env: 
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       run: |
+        rm -rf kcov
         cd build
         ctest
         cd cov
-        bash <(curl -s https://codecov.io/bash)
+        bash <(curl -s https://codecov.io/bash)  -X gcov
         
