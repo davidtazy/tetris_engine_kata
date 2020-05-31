@@ -145,9 +145,18 @@ TEST_CASE("when game start, current block can move left until left wall  ") {
   for (int i = 0; i < game.Width(); i++) {
     game.OnLeft();
   }
+
   REQUIRE(game.History().at(0) == eAction::TryLeft);
   REQUIRE(game.History().at(1) == eAction::Left);
   REQUIRE(game.LastAction() == eAction::CollisionWall);
+
+  // most left block is at position 0
+  auto blocks = game.Current().BlocksAbsolutePosition();
+  auto it =
+      std::min_element(blocks.begin(), blocks.end(),
+                       [](const Pos& first, const Pos& smallest) { return first.x < smallest.x; });
+
+  REQUIRE(it->x == 0);
 }
 
 TEST_CASE("when game start, current block can move right until right wall  ") {
@@ -164,6 +173,13 @@ TEST_CASE("when game start, current block can move right until right wall  ") {
   REQUIRE(game.History().at(0) == eAction::TryRight);
   REQUIRE(game.History().at(1) == eAction::Right);
   REQUIRE(game.LastAction() == eAction::CollisionWall);
+
+  // most right block is at position widrg -1
+  auto blocks = game.Current().BlocksAbsolutePosition();
+  auto it =
+      std::max_element(blocks.begin(), blocks.end(),
+                       [](const Pos& largest, const Pos& first) { return first.x > largest.x; });
+  REQUIRE(it->x == game.Width() - 1);
 }
 
 TEST_CASE("during game, current block can move left until stale blocks  ") {
