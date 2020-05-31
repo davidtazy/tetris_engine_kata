@@ -26,6 +26,7 @@ target_include_directories(Tetris PUBLIC src)
 
 add_executable(tetris src/main.cpp)
 target_link_libraries(tetris PUBLIC Tetris::Tetris )
+target_include_directories(tetris PUBLIC rlutil)
 
 
 ######## test ########
@@ -38,6 +39,7 @@ add_executable(test_tetris
                 test/test_score.cpp
                 test/main_catch.cpp
                 test/test_user_input.cpp
+                test/test_timer.cpp
                 test/Testables.h)
 target_compile_definitions(test_tetris PUBLIC UNITEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test")
 target_link_libraries(test_tetris Tetris::Tetris  Catch2::Catch2 )
@@ -55,3 +57,7 @@ if( KCOV )
         COMMAND ${KCOV} --exclude-pattern=/usr/ --include-path=${CMAKE_CURRENT_LIST_DIR}/src  cov $<TARGET_FILE:test_tetris>  
         )
 endif()
+
+###################################################################
+##################### rlutil   ####################################
+add_executable(test_rlutil rlutil/test_rlutil.cpp)
