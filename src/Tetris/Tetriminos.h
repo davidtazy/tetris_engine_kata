@@ -45,6 +45,7 @@ struct Tetriminos {
   void MoveLeft();
   void MoveRight();
   void SetX(int x) { position.x = x; }
+  void SetY(int y) { position.y = y; }
 
  private:
   eType type;
